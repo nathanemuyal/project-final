@@ -1,0 +1,74 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1px;
+    background-color: #9d9d9d;
+}
+td{
+    
+}
+
+.button-container {
+    display: flex;
+    align-items: center;
+}
+
+.back-button, .logout-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #8086ff;
+    border: none;
+    border-radius: 20px;
+    padding: 10px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    outline: none;
+    margin-left: 10px; /* שמירה על מרווח בין הכפתורים */
+}
+.logout-button{
+    background-color: #d25975;
+}
+
+.back-button:hover {
+    background-color: #4f58fd;
+}
+.logout-button:hover {
+    background-color: #e71949;
+}
+
+.arrow-left {
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 10px solid white;
+    margin-right: 10px;
+}
+
+.ai-logo {
+    width: 60px;
+    height: 50px;
+    margin-right: 12px;
+}
+.user_and_logo{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.user-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
