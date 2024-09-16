@@ -1,42 +1,38 @@
-import React from 'react';
-import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/firebase';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkAndCreateUserPersonalArea } from '../services/firestoreService';
-import { fetchAndProcessEmails } from '../services/gmailService';
 
-import '../style/G_button.css';
+const G_button = () => {
+  const client_id = process.env.REACT_APP_CLIENT_ID;
+  const redirect_uri = 'http://localhost:5000/auth/callback';  // Flask server callback URI
+  const navigate = useNavigate(); // To redirect to another route
 
-function G_button() {
-    const navigate = useNavigate();
+  const handleSignIn = () => {
+    const scope = 'https://www.googleapis.com/auth/gmail.readonly';
+    const oauth2Url = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&access_type=offline`;
 
-    const handleSignIn = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-            console.log(user);
+    // Redirect to Google's OAuth2 consent screen
+    window.location.href = oauth2Url;
+  };
 
-            // בדיקה ויצירת אזור אישי למשתמש אם לא קיים
-            await checkAndCreateUserPersonalArea(user);
+  // This will check if the URL has a token after redirection from the Flask server
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token'); // Assuming token comes as a query param
 
-            // קריאת אימיילים מהמשתמש ועיבוד קבצי PDF
-            await fetchAndProcessEmails(user);
+    if (token) {
+      // Store token securely (could be localStorage or sessionStorage)
+      localStorage.setItem('auth_token', token);
 
-            // ניווט לעמוד שנבחר
-            navigate('/Selected');
-        } catch (error) {
-            console.error('שגיאה במהלך הכניסה', error);
-        }
-    };
+      // Redirect to the private route
+      navigate('/Selected');
+    }
+  }, [navigate]);
 
-    return (
-        <div>
-            <button className="google-sign-in-button" onClick={handleSignIn}>
-                <img src="./google-logo.png" alt="" className="google-logo" />
-                התחבר עם Google
-            </button>
-        </div>
-    );
-}
+  return (
+    <button onClick={handleSignIn}>
+      Sign in with Gmail Access
+    </button>
+  );
+};
 
 export default G_button;

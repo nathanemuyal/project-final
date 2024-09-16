@@ -24,15 +24,25 @@ export default PrivateRoute;
 */
 
 // src/component/PrivateRoute.js
+// import React from 'react';
+// import { Navigate } from 'react-router-dom';
+// import { auth } from '../firebase/firebase';
+
+// const PrivateRoute = ({ children }) => {
+//     const user = auth.currentUser;
+
+//     return user ? children : <Navigate to="/" />;
+// };
+
+// export default PrivateRoute;
+
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { auth } from '../firebase/firebase';
 
 const PrivateRoute = ({ children }) => {
-    const user = auth.currentUser;
+  const token = localStorage.getItem('auth_token');
 
-    return user ? children : <Navigate to="/" />;
+  return token ? children : <Navigate to="/" />;
 };
 
 export default PrivateRoute;
-
