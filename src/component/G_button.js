@@ -7,7 +7,7 @@ const G_button = () => {
   const navigate = useNavigate(); // To redirect to another route
 
   const handleSignIn = () => {
-    const scope = 'https://www.googleapis.com/auth/gmail.readonly';
+    const scope = 'openid email profile https://www.googleapis.com/auth/gmail.readonly';
     const oauth2Url = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&access_type=offline`;
 
     // Redirect to Google's OAuth2 consent screen
