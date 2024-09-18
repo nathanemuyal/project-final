@@ -24,7 +24,8 @@ yarn-error.log*
 
 .env
 client_secret_515295568216-5ji6d2e9enoi4ek6acmghp9p6krpg8sd.apps.googleusercontent.com (1).json
-server/invoic-ia-firebase-adminsdk-1zi97-3b9fa29923.json
+server/invoic-ia-firebase-adminsdk-1zi97-2040a20591.json
 notes.txt
 server/venv
 document.docx
+server/__pycache__

@@ -2,17 +2,21 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 # Initialize the app with a service account, granting admin privileges
-cred = credentials.Certificate('invoic-ia-firebase-adminsdk-1zi97-3b9fa29923.json')  # Replace with the path to your service account JSON file
-firebase_admin.initialize_app(cred)
+cred = credentials.Certificate('invoic-ia-firebase-adminsdk-1zi97-2040a20591.json')  # Replace with the path to your service account JSON file
+firebase_admin.initialize_app(cred, {'storageBucket': 'invoic-ia.appspot.com'})
 
 # Initialize Firestore DB
 db = firestore.client()
 
 def user_login(user_email, display_name):
-    if check_user_exists(user_email):
-        pass
-    else:
+    if not check_user_exists(user_email):
         add_new_user(user_email, display_name)
+
+    users_ref = db.collection('users')
+    query = users_ref.where('email', '==', user_email).limit(1).get()
+
+    user_doc = query[0]
+    return user_doc.reference
 
 
 def add_new_user(user_email, display_name):
@@ -49,8 +53,6 @@ def check_user_exists(email):
     # If the query returns a document, the user exists
     if len(query) > 0:
         user_doc = query[0]  # Get the first document that matches
-        print(f"User exists with ID: {user_doc.id}")
         return True
     else:
-        print("User does not exist.")
         return False

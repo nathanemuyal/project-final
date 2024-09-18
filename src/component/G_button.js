@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import '../style/G_button.css';
+
 const G_button = () => {
   const client_id = process.env.REACT_APP_CLIENT_ID;
   const redirect_uri = 'http://localhost:5000/auth/callback';  // Flask server callback URI
@@ -29,9 +31,13 @@ const G_button = () => {
   }, [navigate]);
 
   return (
-    <button onClick={handleSignIn}>
-      Sign in with Gmail Access
-    </button>
+    <div>
+      <button className="google-sign-in-button" onClick={handleSignIn}>
+          <img src="./google-logo.png" alt="" className="google-logo" />
+          התחבר עם Google
+      </button>
+    </div>
+
   );
 };
 
