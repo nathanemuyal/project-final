@@ -3,24 +3,39 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from firebase_admin import storage
 import base64
+from datetime import datetime
+from email.utils import parsedate_to_datetime
 
 
 def write_email_info_to_db(user_ref, google_access_token):
-    email_info = compile_emails(google_access_token)
+    doc = user_ref.get()
+    try:
+        last_email_timestamp = doc.get('last_email')
+    except KeyError:
+        last_email_timestamp = None
+
+    email_info = compile_emails(google_access_token, last_email_timestamp)
     write_email_info(user_ref, email_info)
+    write_latest_email_timestamp(user_ref, email_info)
 
     
-def compile_emails(google_access_token):
+def compile_emails(google_access_token, timestamp):
     # Use the access token to query the Gmail API
     creds = Credentials(token=google_access_token)
     service = build('gmail', 'v1', credentials=creds)
 
     # Retrieve messages from the user's Gmail inbox
-    results = service.users().messages().list(userId='me', labelIds=['INBOX'], maxResults=15).execute()
+    results = service.users().messages().list(userId='me', labelIds=['INBOX'], maxResults=100).execute()
     messages = results.get('messages', [])
 
-    emails_infos = []
 
+    time_format = "%a, %d %b %Y %H:%M:%S %z"
+    latest_timestamp_dt = None
+    if timestamp is not None:
+        timestamp = timestamp.replace("GMT", "+0000")
+        latest_timestamp_dt = datetime.strptime(timestamp, time_format)
+
+    emails_infos = []
     # Iterate over each message
     for message in messages:
         msg = service.users().messages().get(userId='me', id=message['id'], format='full').execute()
@@ -38,7 +53,13 @@ def compile_emails(google_access_token):
                 email_from = extract_email(header['value'])
             if header['name'] == 'Date':
                 email_timestamp = header['value']
-        
+
+            
+        email_timestamp = email_timestamp.replace("GMT", "+0000")
+        this_email_timestamp_dt = datetime.strptime(email_timestamp, time_format)
+        if latest_timestamp_dt is not None:
+            if latest_timestamp_dt >= this_email_timestamp_dt:
+                break
 
         # Check for attachments
         if 'parts' in msg['payload']:
@@ -62,7 +83,6 @@ def compile_emails(google_access_token):
                 'pdf': pdf_url,
             })
     
-
     return emails_infos
 
 def extract_email(email_from):
@@ -93,19 +113,37 @@ def upload_pdf_to_storage(pdf_data, filename):
 
 
 def write_email_info(user_ref, email_infos):
-    delete_subcollection(user_ref, 'beforeCheck')
+    print('adding', len(email_infos), 'to beforeCheck.')
     before_check_ref = user_ref.collection('beforeCheck')
     for email_info in email_infos:
         before_check_ref.add(email_info)
 
 
-def delete_subcollection(user_ref, subcollection_name):
-    # Get a reference to the subcollection
-    subcollection_ref = user_ref.collection(subcollection_name)
+# def delete_subcollection(user_ref, subcollection_name):
+#     # Get a reference to the subcollection
+#     subcollection_ref = user_ref.collection(subcollection_name)
     
-    # Retrieve all documents in the subcollection
-    docs = subcollection_ref.stream()
+#     # Retrieve all documents in the subcollection
+#     docs = subcollection_ref.stream()
     
-    # Delete each document in the subcollection
-    for doc in docs:
-        doc.reference.delete()
+#     # Delete each document in the subcollection
+#     for doc in docs:
+#         doc.reference.delete()
+
+    
+def write_latest_email_timestamp(user_ref, email_info):
+    latest_timestamp = None
+
+    for email in email_info:
+        # Convert the timestamp string to a datetime object
+        current_timestamp = datetime.strptime(email['timestamp'], "%a, %d %b %Y %H:%M:%S %z")
+
+        # Update if this is the latest timestamp
+        if latest_timestamp is None or current_timestamp > latest_timestamp:
+            latest_timestamp = current_timestamp
+
+    if latest_timestamp is not None:
+        # if none that means no new emails -> don't update the timestamp
+        user_ref.update({
+            'last_email': latest_timestamp.strftime("%a, %d %b %Y %H:%M:%S %z")
+        })

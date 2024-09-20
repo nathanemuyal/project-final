@@ -11,7 +11,7 @@ load_dotenv()
 
 from firebase import user_login
 from gmail import write_email_info_to_db
-from gpt import sort_user_emails
+from ai import sort_user_emails
 
 app = Flask(__name__)
 CORS(app)
@@ -74,7 +74,7 @@ def handle_user(access_token, user_email, display_name):
     write_email_info_to_db(user_ref, access_token)
 
     # afterCheck
-    sort_user_emails(user_ref)
+    # sort_user_emails(user_ref)
 
 
 if __name__ == '__main__':

@@ -11,11 +11,11 @@ function Haeding() {
 
     const handleBackClick = async () => {
         await navigate(-1);
-     
 
         if (location.pathname === '/') {
             try {
-                await signOut(auth);
+                // await signOut(auth);
+                localStorage.removeItem('auth_token');
                 console.log("User signed out");
                 navigate('/'); // לאחר ניתוק, נשאר בדף הבית
             } catch (error) {
@@ -26,7 +26,8 @@ function Haeding() {
 
     const handleSignOut = async () => {
         try {
-            await signOut(auth);
+            // await signOut(auth);
+            localStorage.removeItem('auth_token');
             console.log("User signed out");
             navigate('/'); // לאחר התנתקות, נווט לדף הבית
         } catch (error) {
