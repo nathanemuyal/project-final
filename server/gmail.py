@@ -118,18 +118,6 @@ def write_email_info(user_ref, email_infos):
     for email_info in email_infos:
         before_check_ref.add(email_info)
 
-
-# def delete_subcollection(user_ref, subcollection_name):
-#     # Get a reference to the subcollection
-#     subcollection_ref = user_ref.collection(subcollection_name)
-    
-#     # Retrieve all documents in the subcollection
-#     docs = subcollection_ref.stream()
-    
-#     # Delete each document in the subcollection
-#     for doc in docs:
-#         doc.reference.delete()
-
     
 def write_latest_email_timestamp(user_ref, email_info):
     latest_timestamp = None

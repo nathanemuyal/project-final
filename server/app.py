@@ -1,8 +1,6 @@
-import base64
 from flask import Flask, request, redirect, jsonify
 import requests
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
+from google.cloud.firestore_v1.base_query import FieldFilter
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -74,7 +72,25 @@ def handle_user(access_token, user_email, display_name):
     write_email_info_to_db(user_ref, access_token)
 
     # afterCheck
-    # sort_user_emails(user_ref)
+    sort_user_emails(user_ref)
+
+    # delete non relevent email documents
+    delete_non_invoice_or_reciept_emails(user_ref)
+
+
+def delete_non_invoice_or_reciept_emails(user_ref):
+    # Get the afterCheck subcollection
+    after_check_ref = user_ref.collection('afterCheck')
+    
+    # Create a query to find documents where type == 'null'
+    query = after_check_ref.where(filter=FieldFilter('sorted_data.type', '==', 'null'))
+    
+    # Get all matching documents
+    docs = query.stream()
+    
+    # Delete each matching document
+    for doc in docs:
+        doc.reference.delete()
 
 
 if __name__ == '__main__':
