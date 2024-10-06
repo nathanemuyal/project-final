@@ -1,18 +1,21 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import Result_line from '../component/Result_line';
 import Haeding from '../component/Haeding';
 
-
-const invoiceData = [
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-    { date: '01/01/2024', time: '24:00', description: 'energy', amount: '10,000$', status: 'paid' },
-];
-
 const Result = () => {
+    const pdfClick = (pdfUrl) => {
+        window.open(pdfUrl, '_blank'); // Opens the link in a new tab
+    };
+
+    const location = useLocation();
+    const data = location.state?.data || [];
+
+    // Ensure data is an array before trying to map over it
+    if (!Array.isArray(data)) {
+        return <div>No valid data available.</div>;
+    }
+
     return (
         <div>
             <Haeding />
@@ -20,24 +23,35 @@ const Result = () => {
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Time</th>
-                        <th>Description</th>
+                        <th>Company</th>
+                        <th>Category</th>
+                        <th>Currency</th>
                         <th>Amount</th>
                         <th>Status</th>
+                        <th>Pdf</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {invoiceData.map((invoice, index) => (
-                        <Result_line
-                            key={index}
-                            date={invoice.date}
-                            time={invoice.time}
-                            description={invoice.description}
-                            amount={invoice.amount}
-                            status={invoice.status}
-                        />
-                    ))}
+                    {data.length > 0 ? (
+                        data.map((item, index) => (
+                            <tr key={index}>
+                                <td>{item.date}</td>
+                                <td>{item.company}</td>
+                                <td>{item.category}</td>
+                                <td>{item.currency}</td>
+                                <td>{item.amount}</td>
+                                <td>{item.status}</td>
+                                <td>
+                                    <button onClick={() => pdfClick(item.pdf)}>View Pdf</button>
+                                </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="6">No data available</td>
+                        </tr>
+                    )}
                 </tbody>
             </table>
         </div>

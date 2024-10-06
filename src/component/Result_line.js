@@ -1,11 +1,11 @@
 import React from 'react';
 import '../style/Result_line.css'
-const Result_line = ({ date, time, description, amount, status }) => {
+const Result_line = ({ date, company, category, amount, status }) => {
     return (
         <tr>
             <td>{date}</td>
-            <td>{time}</td>
-            <td>{description}</td>
+            <td>{company}</td>
+            <td>{category}</td>
             <td>{amount}</td>
             <td>{status}</td>
             <td>

@@ -1,4 +1,5 @@
-from flask import Flask, request, redirect, jsonify
+from io import BytesIO
+from flask import Flask, request, redirect, jsonify, send_file
 import requests
 from google.cloud.firestore_v1.base_query import FieldFilter
 from flask_cors import CORS
@@ -7,7 +8,7 @@ import os
 load_dotenv()
 
 
-from firebase import user_login
+from firebase import user_login, compile_sorted_data
 from gmail import write_email_info_to_db
 from ai import sort_user_emails
 
@@ -65,6 +66,38 @@ def oauth2callback():
     return redirect(f'http://localhost:3000/?token={access_token}')
 
 
+@app.route('/get_profile_pic', methods=['POST'])
+def get_profile_pic():
+    data = request.json
+    access_token = data.get('access_token')
+
+    if not access_token:
+        return jsonify({'error': 'Missing access token'}), 400
+
+    # Get user info including profile picture URL
+    user_info = get_user_info(access_token)
+    
+    if not user_info:
+        return jsonify({'error': 'Failed to retrieve user info'}), 500
+
+    profile_pic_url = user_info.get('picture')
+
+    # Return the profile picture URL
+    return jsonify({'profile_pic_url': profile_pic_url})
+
+
+def get_user_info(access_token):
+    """Get user info from Google API using access token."""
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+    }
+    userinfo_url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+    response = requests.get(userinfo_url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    return None
+
+
 def handle_user(access_token, user_email, display_name):
     user_ref = user_login(user_email, display_name)
 
@@ -91,6 +124,29 @@ def delete_non_invoice_or_reciept_emails(user_ref):
     # Delete each matching document
     for doc in docs:
         doc.reference.delete()
+
+
+@app.route('/sort', methods=['POST'])
+def sort_data():
+    # Parse the incoming JSON request
+    req_data = request.get_json()
+    access_token = req_data.get('access_token')
+    category = req_data.get('category')
+
+    # Step 1: Get user information using Google access token
+    user_info = get_user_info(access_token)
+
+    if user_info is None:
+        return jsonify({"error": 'could not get user info'}), 401
+
+    user_email = user_info.get('email')
+
+    if not user_email:
+        return jsonify({"error": "Could not retrieve email from token"}), 401
+
+    data = compile_sorted_data(user_email, category)
+
+    return data, 200
 
 
 if __name__ == '__main__':

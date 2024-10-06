@@ -1,18 +1,15 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/firebase';
 import "../style/Haeding.css"; // תיקון שם הקובץ
 
-function Haeding() {
+const Haeding = ({ photoURL }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const user = auth.currentUser; // קבלת המשתמש המחובר
 
-    const handleBackClick = async () => {
-        await navigate(-1);
+    const handleBackClick =  () => {
+        navigate(-1);
 
-        if (location.pathname === '/') {
+        if (location.pathname === '/Selected') {
             try {
                 // await signOut(auth);
                 localStorage.removeItem('auth_token');
@@ -47,14 +44,37 @@ function Haeding() {
                 </button>
             </div>
             <h1>AI - Invoice</h1>
-            <div className="user_and_logo">
+
+
+            {/* <div className="user_and_logo">
                 {user && (
                     <div className="user-info">
                         <img src={user.photoURL} alt="User" className="user-photo" />
                     </div>
                 )}
                 <img src="./image.png" alt="AI Logo" className="ai-logo" />
+            </div> */}
+
+
+{/* 
+            <div className="user_and_logo">
+            {photoURL && (
+                <div className="user-info">
+                <img src={photoURL} alt="User" className="user-photo" />
+                </div>
+            )}
+            <img src="./image.png" alt="AI Logo" className="ai-logo" />
+            </div> */}
+
+
+            <div className="user_and_logo">
+                <div className="user-info">
+                    <img src={photoURL} alt="User" className="user-photo" />
+                </div>
+                <img src="./image.png" alt="AI Logo" className="ai-logo" />
             </div>
+
+
         </header>
     );
 }

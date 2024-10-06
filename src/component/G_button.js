@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import '../style/G_button.css';
 
-const G_button = () => {
+const G_button = ({ setUserPhoto }) => {
   const client_id = process.env.REACT_APP_CLIENT_ID;
   const redirect_uri = 'http://localhost:5000/auth/callback';  // Flask server callback URI
   const navigate = useNavigate(); // To redirect to another route
@@ -25,6 +25,25 @@ const G_button = () => {
       // Store token securely (could be localStorage or sessionStorage)
       localStorage.setItem('auth_token', token);
 
+
+      // Fetch the user picture from Flask
+      fetch(`http://localhost:5000/get_profile_pic`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ access_token: token }),  // Send the token to Flask
+      })
+        .then(response => response.json())  // Get image as blob
+        .then(data => {
+            let profilePicUrl = data.profile_pic_url;
+
+            profilePicUrl = './image.png'
+
+
+            setUserPhoto(profilePicUrl);  // Set the profile picture URL using the prop
+        })
+        .catch(error => console.error('Error fetching profile picture:', error));
       // Redirect to the private route
       navigate('/Selected');
     }
