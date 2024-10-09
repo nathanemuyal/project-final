@@ -1,11 +1,11 @@
 // import React from 'react';
 // import '../style/Selected.css';
-// import Haeding from '../component/Haeding';
+// import Heading from '../component/Heading';
 
 // const Selected = () => {
 //     return (
 //         <div>
-//             <Haeding/>
+//             <Heading/>
 //             <div className='sel_button'>
 //                 <button className="select">
 //                     energy
@@ -39,7 +39,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom'; // for navigation
 import '../style/Selected.css';
-import Haeding from '../component/Haeding';
+import Heading from '../component/Heading';
 
 const Selected = () => {
     const navigate = useNavigate();
@@ -77,7 +77,7 @@ const Selected = () => {
 
     return (
         <div>
-            <Haeding />
+            <Heading />
             <div className='sel_button'>
                 <button className="select" onClick={() => handleButtonClick('energy')}>
                     energy

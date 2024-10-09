@@ -1,10 +1,17 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import "../style/Haeding.css"; // תיקון שם הקובץ
+import "../style/Heading.css"; // תיקון שם הקובץ
 
-const Haeding = ({ photoURL }) => {
+const Heading = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [profilePicUrl, setProfilePicUrl] = useState('');
+    useEffect(() => {
+        const storedProfilePicUrl = localStorage.getItem('profilePicUrl');
+        if (storedProfilePicUrl) {
+            setProfilePicUrl(storedProfilePicUrl);
+        }
+    }, []);
 
     const handleBackClick =  () => {
         navigate(-1);
@@ -13,6 +20,7 @@ const Haeding = ({ photoURL }) => {
             try {
                 // await signOut(auth);
                 localStorage.removeItem('auth_token');
+                localStorage.removeItem('profilePicUrl');
                 console.log("User signed out");
                 navigate('/'); // לאחר ניתוק, נשאר בדף הבית
             } catch (error) {
@@ -25,6 +33,7 @@ const Haeding = ({ photoURL }) => {
         try {
             // await signOut(auth);
             localStorage.removeItem('auth_token');
+            localStorage.removeItem('profilePicUrl');
             console.log("User signed out");
             navigate('/'); // לאחר התנתקות, נווט לדף הבית
         } catch (error) {
@@ -44,39 +53,14 @@ const Haeding = ({ photoURL }) => {
                 </button>
             </div>
             <h1>AI - Invoice</h1>
-
-
-            {/* <div className="user_and_logo">
-                {user && (
-                    <div className="user-info">
-                        <img src={user.photoURL} alt="User" className="user-photo" />
-                    </div>
-                )}
-                <img src="./image.png" alt="AI Logo" className="ai-logo" />
-            </div> */}
-
-
-{/* 
-            <div className="user_and_logo">
-            {photoURL && (
-                <div className="user-info">
-                <img src={photoURL} alt="User" className="user-photo" />
-                </div>
-            )}
-            <img src="./image.png" alt="AI Logo" className="ai-logo" />
-            </div> */}
-
-
             <div className="user_and_logo">
                 <div className="user-info">
-                    <img src={photoURL} alt="User" className="user-photo" />
+                    <img src={profilePicUrl} alt='' className="user-photo" />
                 </div>
                 <img src="./image.png" alt="AI Logo" className="ai-logo" />
             </div>
-
-
         </header>
     );
 }
 
-export default Haeding;
+export default Heading;

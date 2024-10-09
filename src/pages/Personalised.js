@@ -1,5 +1,5 @@
 import React from 'react';
-import Haeding from '../component/Haeding';
+import Heading from '../component/Heading';
 import ToggleSwitch from '../component/ToggleSwitch';
 import Date from '../component/Date';
 import '../style/Personalised.css';
@@ -7,7 +7,7 @@ import '../style/Personalised.css';
 const Personalised = () => {
     return (
         <div>
-            <Haeding />
+            <Heading />
             <div className="invoice-search">
                 <div className="row">
                     <Date />

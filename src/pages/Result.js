@@ -1,7 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import Result_line from '../component/Result_line';
-import Haeding from '../component/Haeding';
+import Heading from '../component/Heading';
 
 const Result = () => {
     const pdfClick = (pdfUrl) => {
@@ -18,7 +17,7 @@ const Result = () => {
 
     return (
         <div>
-            <Haeding />
+            <Heading />
             <table>
                 <thead>
                     <tr>
