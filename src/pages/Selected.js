@@ -97,9 +97,6 @@ const Selected = () => {
                 <button className="select" onClick={() => handleButtonClick('other')}>
                     other
                 </button>
-                <button className="personalised" onClick={() => handleButtonClick('personalised')}>
-                    personalised (implement)
-                </button>
             </div>
         </div>
     );

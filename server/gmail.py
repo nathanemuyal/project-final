@@ -32,7 +32,7 @@ def compile_emails(google_access_token, timestamp):
     time_format = "%a, %d %b %Y %H:%M:%S %z"
     latest_timestamp_dt = None
     if timestamp is not None:
-        timestamp = timestamp.replace("GMT", "+0000")
+        timestamp = clean_timestamp(timestamp)
         latest_timestamp_dt = datetime.strptime(timestamp, time_format)
 
     emails_infos = []
@@ -54,8 +54,7 @@ def compile_emails(google_access_token, timestamp):
             if header['name'] == 'Date':
                 email_timestamp = header['value']
 
-            
-        email_timestamp = email_timestamp.replace("GMT", "+0000")
+        email_timestamp = clean_timestamp(email_timestamp)
         this_email_timestamp_dt = datetime.strptime(email_timestamp, time_format)
         if latest_timestamp_dt is not None:
             if latest_timestamp_dt >= this_email_timestamp_dt:
@@ -84,6 +83,10 @@ def compile_emails(google_access_token, timestamp):
             })
     
     return emails_infos
+
+def clean_timestamp(timestamp):
+    pattern = r'^(.*?\d{2}:\d{2}:\d{2})\s*.*$'
+    return re.sub(pattern, r'\1', timestamp)+' +0000'
 
 def extract_email(email_from):
     # Regular expression to extract the email address from the 'From' field

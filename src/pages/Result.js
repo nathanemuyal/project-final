@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Heading from '../component/Heading';
+import '../style/Result_line.css'
 
 const Result = () => {
     const pdfClick = (pdfUrl) => {
