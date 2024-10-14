@@ -21,19 +21,3 @@
 .select:hover {
     background-color: #c0c0c0;
 }
-
-.personalised {
-    width: 200px;
-    padding: 10px;
-    background-color: #d3d3d3;
-    border: none;
-    border-radius: 5px;
-    text-align: center;
-    font-size: 16px;
-    color: #000;
-    cursor: pointer;
-}
-
-.personalised:hover {
-    background-color: #c0c0c0;
-}

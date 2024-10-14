@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import "../style/Heading.css"; // תיקון שם הקובץ
 
 const Heading = () => {
+    const imageRef = useRef(null);
     const navigate = useNavigate();
     const location = useLocation();
     const [profilePicUrl, setProfilePicUrl] = useState('');
@@ -10,6 +11,7 @@ const Heading = () => {
         const storedProfilePicUrl = localStorage.getItem('profilePicUrl');
         if (storedProfilePicUrl) {
             setProfilePicUrl(storedProfilePicUrl);
+            imageRef.current.style.display = 'inline';
         }
     }, []);
 
@@ -55,9 +57,15 @@ const Heading = () => {
             <h1>AI - Invoice</h1>
             <div className="user_and_logo">
                 <div className="user-info">
-                    <img src={profilePicUrl} alt='' className="user-photo" />
+                    <img 
+                        ref={imageRef}
+                        src={profilePicUrl} 
+                        alt='' className="user-photo" 
+                        style={{display:'none'}}
+                    />
                 </div>
-                <img src="./image.png" alt="AI Logo" className="ai-logo" />
+                <img src="./image.png" alt="AI Logo" className="ai-logo"/>
+
             </div>
         </header>
     );
