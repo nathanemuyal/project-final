@@ -5,6 +5,7 @@ from firebase_admin import storage
 import base64
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from ai import sort_pdf
 
 
 def write_email_info_to_db(user_ref, google_access_token):
@@ -20,6 +21,19 @@ def write_email_info_to_db(user_ref, google_access_token):
 
     
 def compile_emails(google_access_token, timestamp):
+    # steps:
+    #     - verify google access token
+    #     - create user entry if no already created
+    #     - iterate over emails:
+    #         - for each email:
+    #             - store email from
+    #             - for each attachment:
+    #                 - if attachment is a pdf:
+    #                     - download the pdf data
+    #                     - run it through the ai
+    #                     - add the data to a list of attachments (sorted data, attachment name, pdf url via email??)
+    #             - add email data to list of email (email from, list of attachments)
+
     # Use the access token to query the Gmail API
     creds = Credentials(token=google_access_token)
     service = build('gmail', 'v1', credentials=creds)
@@ -38,6 +52,7 @@ def compile_emails(google_access_token, timestamp):
     emails_infos = []
     # Iterate over each message
     for message in messages:
+        message_id = message['id']
         msg = service.users().messages().get(userId='me', id=message['id'], format='full').execute()
         headers = msg['payload']['headers']
 
@@ -46,6 +61,7 @@ def compile_emails(google_access_token, timestamp):
         email_timestamp = None
         has_pdf_attachment = False
         pdf_url = None
+        email_url = None
         
 
         for header in headers:
@@ -54,12 +70,18 @@ def compile_emails(google_access_token, timestamp):
             if header['name'] == 'Date':
                 email_timestamp = header['value']
 
+
+        
+
         email_timestamp = clean_timestamp(email_timestamp)
         this_email_timestamp_dt = datetime.strptime(email_timestamp, time_format)
+
+
         if latest_timestamp_dt is not None:
             if latest_timestamp_dt >= this_email_timestamp_dt:
                 break
 
+        email_attachments = []
         # Check for attachments
         if 'parts' in msg['payload']:
             for part in msg['payload']['parts']:
@@ -70,16 +92,27 @@ def compile_emails(google_access_token, timestamp):
                     # Get attachment data
                     attachment_id = part['body'].get('attachmentId')
                     if attachment_id:
-                        pdf_data = get_attachment_data(service, 'me', message['id'], attachment_id)
-                        pdf_url = upload_pdf_to_storage(pdf_data, pdf_filename)
+                        # email_url = f"https://mail.google.com/mail/u/0/#inbox/{message_id}"
+                        # pdf_url = f"https://mail.google.com/mail/u/0?ui=2&ik=&view=att&th={message['id']}&attid=0"
 
-                    break  # Exit loop after finding the first PDF attachment
+                        pdf_data = get_attachment_data(service, 'me', message_id, attachment_id)
+                        pdf_data = base64.urlsafe_b64decode(pdf_data)
+                        sorted_data = sort_pdf(pdf_data)
+                        pdf_storage_url = upload_pdf_to_storage(pdf_data, pdf_filename)
+
+                        sorted_data['pdf'] = pdf_storage_url
+                        # sorted_data['pdf'] = pdf_url
+                        # sorted_data['pdf'] = email_url
+
+                        if sorted_data != None:
+                            email_attachments.append(sorted_data)
+
 
         if has_pdf_attachment:
             emails_infos.append({
                 'from': email_from,
                 'timestamp': email_timestamp,
-                'pdf': pdf_url,
+                'attachments': email_attachments
             })
     
     return emails_infos
@@ -108,7 +141,7 @@ def upload_pdf_to_storage(pdf_data, filename):
     blob = bucket.blob(f"pdfs/{filename}")
 
     # Upload the PDF data (decoded) to the bucket
-    blob.upload_from_string(base64.urlsafe_b64decode(pdf_data), content_type="application/pdf")
+    blob.upload_from_string(pdf_data, content_type="application/pdf")
 
     # Make the blob publicly accessible and return the public URL
     blob.make_public()
@@ -116,10 +149,11 @@ def upload_pdf_to_storage(pdf_data, filename):
 
 
 def write_email_info(user_ref, email_infos):
-    print('adding', len(email_infos), 'to beforeCheck.')
-    before_check_ref = user_ref.collection('beforeCheck')
+    print('adding', len(email_infos), ' emails.')
+
+    emails_ref = user_ref.collection('emails')
     for email_info in email_infos:
-        before_check_ref.add(email_info)
+        emails_ref.add(email_info)
 
     
 def write_latest_email_timestamp(user_ref, email_info):

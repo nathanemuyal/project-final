@@ -6,6 +6,31 @@ import '../style/Result_line.css'
 const Result = () => {
     const pdfClick = (pdfUrl) => {
         window.open(pdfUrl, '_blank'); // Opens the link in a new tab
+            // Retrieve the access token from local storage
+
+        // const accessToken = localStorage.getItem('auth_token');
+        
+        // if (!accessToken) {
+        //     console.error('Access token not found in local storage.');
+        //     return;
+        // }
+        // // make requst to server along with the access token
+
+        // // Fetch the user picture from Flask
+        // fetch(`http://localhost:5000/get_pdf`, {
+        //     method: 'POST',
+        //     headers: {
+        //     'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ access_token: accessToken , pdf_url: pdfUrl}),  // Send the token to Flask
+        // })
+        //     .then(response => response.json())  // Get image as blob
+        //     .then(data => {
+        //         alert(data)
+        //     })
+        //     .catch(error => console.error('Error fetching profile picture:', error));
+
+
     };
 
     const location = useLocation();

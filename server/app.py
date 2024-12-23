@@ -10,7 +10,6 @@ load_dotenv()
 
 from firebase import user_login, compile_sorted_data
 from gmail import write_email_info_to_db
-from ai import sort_user_emails
 
 app = Flask(__name__)
 CORS(app)
@@ -63,7 +62,63 @@ def oauth2callback():
         return jsonify({'error': 'Failed to obtain user email and display name'}), 400
 
     handle_user(access_token, user_email, display_name)
+    #logout or close the browser
     return redirect(f'http://localhost:3000/?token={access_token}')
+
+
+@app.route('/get_pdf', methods=['POST'])
+def get_pdf():
+    data = request.json
+    access_token = data.get('access_token')
+    if not access_token:
+        return jsonify({'error': 'Missing access token'}), 400
+    pdf_url = data.get('pdf_url')
+    if not pdf_url:
+        return jsonify({'error': 'Missing pdf url'}), 400
+    
+
+
+
+
+
+
+
+
+
+
+
+    """
+    Downloads an attachment from Gmail using the access token and private URL.
+    
+    :param access_token: The OAuth2 access token with Gmail scopes.
+    :param private_url: The private URL of the attachment.
+    :param save_path: Path to save the downloaded attachment.
+    :return: None
+    """
+    # Add the authorization header
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    # Make a GET request to the private URL
+    response = requests.get(pdf_url, headers=headers, stream=True)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Write the content to the specified file
+        with open('temp.pdf', "wb") as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        print(f"Attachment downloaded successfully to {'temp.pdf'}")
+    else:
+        print(f"Failed to download attachment. Status code: {response.status_code}")
+        print(response.text)
+
+
+
+
+
+    return jsonify({'success': 'worked'}), 200
 
 
 @app.route('/get_profile_pic', methods=['POST'])
@@ -101,29 +156,37 @@ def get_user_info(access_token):
 def handle_user(access_token, user_email, display_name):
     user_ref = user_login(user_email, display_name)
 
-    # beforeCheck
+    # emails collection
     write_email_info_to_db(user_ref, access_token)
 
-    # afterCheck
-    sort_user_emails(user_ref)
-
-    # delete non relevent email documents
     delete_non_invoice_or_reciept_emails(user_ref)
 
 
 def delete_non_invoice_or_reciept_emails(user_ref):
-    # Get the afterCheck subcollection
-    after_check_ref = user_ref.collection('afterCheck')
-    
-    # Create a query to find documents where type == 'null'
-    query = after_check_ref.where(filter=FieldFilter('sorted_data.type', '==', 'null'))
-    
-    # Get all matching documents
-    docs = query.stream()
-    
-    # Delete each matching document
-    for doc in docs:
-        doc.reference.delete()
+    emails_ref = user_ref.collection('emails')
+    emails = emails_ref.stream()
+
+    for email in emails:
+        email_data = email.to_dict()
+        email_id = email.id
+
+        # Check if 'attachments' exists and is a list
+        if 'attachments' in email_data and isinstance(email_data['attachments'], list):
+            original_attachments = email_data['attachments']
+            # Filter out attachments where 'type' is 'null'
+            updated_attachments = [att for att in original_attachments if att.get('type') != 'null']
+
+            if not updated_attachments:
+                # If updated_attachments is empty aka all of type 'null', delete the document
+                emails_ref.document(email_id).delete()
+                print(f"Deleted email ID {email_id} as all attachments were removed")
+
+            # If there are changes, update the document
+            elif original_attachments != updated_attachments:
+                emails_ref.document(email_id).update({
+                    'attachments': updated_attachments
+                })
+                print(f'removed {len(original_attachments) - len(updated_attachments)} from attachements for email.')
 
 
 @app.route('/sort', methods=['POST'])
@@ -144,6 +207,7 @@ def sort_data():
     if not user_email:
         return jsonify({"error": "Could not retrieve email from token"}), 401
 
+    # TODO update the compile_sorted_data method
     data = compile_sorted_data(user_email, category)
 
     return data, 200

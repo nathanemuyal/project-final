@@ -50,30 +50,49 @@ def check_user_exists(email):
 
 def compile_sorted_data(user_email, category):
     user_ref = user_login(user_email, 'placeholder')
-    after_check_ref = user_ref.collection('afterCheck')
+    emails_ref = user_ref.collection('emails')
 
     # Fetch all documents
-    all_docs = after_check_ref.stream()
+    all_emails = emails_ref.stream()
 
     data = []
     
     # Manually filter by 'sorted_data.category'
-    for doc in all_docs:
-        doc_data = doc.to_dict()
-        sorted_data = doc_data.get('sorted_data', {})
-        if sorted_data.get('category') == category:
-            pdf = doc_data.get('pdf')  # Extract the 'pdf' field from the document
-            status = 'paid' if sorted_data.get('type') == 'Receipt' else 'pending'
-            result = {
-                'date': sorted_data.get('issue_date'),
-                'company': sorted_data.get('billing_company'),
-                'category': sorted_data.get('category'),
-                'currency': sorted_data.get('currency'),
-                'amount': sorted_data.get('amount'),
-                'status': status,
-                'pdf': pdf
-            }
-            data.append(result)
+    for email in all_emails:
+        email_data = email.to_dict()
+
+
+        attachments = email_data.get('attachments', [])
+        for attachment in attachments:
+            if attachment.get('category') == category:
+                pdf = attachment.get('pdf')  # Extract the 'pdf' field from the document
+                status = 'paid' if attachment.get('type') == 'Receipt' else 'pending'
+                result = {
+                    'date': attachment.get('issue_date'),
+                    'company': attachment.get('billing_company'),
+                    'category': attachment.get('category'),
+                    'currency': attachment.get('currency'),
+                    'amount': attachment.get('amount'),
+                    'status': status,
+                    'pdf': pdf
+                }
+                data.append(result)
+
+
+        # sorted_data = doc_data.get('sorted_data', {})
+        # if sorted_data.get('category') == category:
+        #     pdf = doc_data.get('pdf')  # Extract the 'pdf' field from the document
+        #     status = 'paid' if sorted_data.get('type') == 'Receipt' else 'pending'
+        #     result = {
+        #         'date': sorted_data.get('issue_date'),
+        #         'company': sorted_data.get('billing_company'),
+        #         'category': sorted_data.get('category'),
+        #         'currency': sorted_data.get('currency'),
+        #         'amount': sorted_data.get('amount'),
+        #         'status': status,
+        #         'pdf': pdf
+        #     }
+        #     data.append(result)
 
 
     return data
